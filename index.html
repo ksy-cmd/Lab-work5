@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Освітній портал | Lab5 - Vue.js пошук курсів</title>
+    
+    <!-- Google Fonts: Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        /* ========== CSS ЗМІННІ ========== */
+        :root {
+            --color-primary: #1B4F72;
+            --color-accent: #2ECC71;
+            --color-bg: #F4F9F9;
+            --color-text: #2C3E50;
+            --color-white: #FFFFFF;
+            --color-border: #DCE4EC;
+            
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ========== ГЛОБАЛЬНІ СТИЛІ ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            padding: var(--spacing-sm);
+        }
+
+        h1 {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            color: var(--color-primary);
+            border-bottom: 3px solid var(--color-accent);
+            display: inline-block;
+            padding-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        h3 {
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-top: var(--spacing-lg);
+            color: var(--color-primary);
+        }
+
+        p {
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* ========== ШАПКА ========== */
+        .page-header {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            padding: var(--spacing-lg) var(--spacing-md);
+            text-align: center;
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .page-header h1 {
+            color: var(--color-white);
+            border-bottom: none;
+        }
+
+        /* ========== НАВІГАЦІЯ ========== */
+        .main-nav {
+            background-color: var(--color-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-link {
+            display: block;
+            padding: var(--spacing-md);
+            text-decoration: none;
+            color: var(--color-text);
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            border-radius: var(--radius-md);
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            background-color: var(--color-accent);
+            color: var(--color-primary);
+            outline: none;
+        }
+
+        .nav-link[aria-current="page"] {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        /* ========== ОСНОВНИЙ КОНТЕЙНЕР VUE ========== */
+        #app {
+            display: grid;
+            grid-template-areas:
+                "about"
+                "search"
+                "gallery"
+                "contact";
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .about-section { grid-area: about; }
+        .search-section { grid-area: search; }
+        .gallery-section { grid-area: gallery; }
+        .contact-section { grid-area: contact; }
+
+        /* ========== СЕКЦІЯ ПОШУКУ ========== */
+        .search-section {
+            background-color: var(--color-white);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-md);
+            font-size: 1rem;
+            font-family: inherit;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            transition: border-color 0.3s ease;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        .category-filter {
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .category-filter label {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .category-select {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background-color: var(--color-white);
+            cursor: pointer;
+        }
+
+        .search-counter {
+            font-size: 0.9rem;
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-sm);
+            background-color: var(--color-bg);
+            border-radius: var(--radius-md);
+            display: inline-block;
+        }
+
+        .search-results {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        /* Картка курсу */
+        .course-card {
+            background-color: var(--color-bg);
+            border-left: 4px solid var(--color-accent);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .course-card:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .course-card h3 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-primary);
+            font-size: 1.2rem;
+        }
+
+        .course-card .course-details {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: var(--spacing-sm);
+            display: flex;
+            gap: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .course-card .course-details span {
+            background-color: var(--color-white);
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: #999;
+            font-style: italic;
+        }
+
+        /* ========== ГАЛЕРЕЯ ========== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        .gallery-card {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* ========== КОНТАКТИ ========== */
+        .contact-section {
+            background-color: var(--color-white);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .media-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .responsive-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .image-figure {
+            margin: 0;
+            text-align: center;
+        }
+
+        .external-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid var(--color-accent);
+        }
+
+        /* ========== ПОВІДОМЛЕННЯ ========== */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.info { background-color: var(--color-primary); }
+        .notification.success { background-color: #27AE60; }
+        .notification.warning { background-color: #F39C12; }
+        .notification.error { background-color: #E74C3C; }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        /* ========== ПІДВАЛ ========== */
+        .page-footer {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            text-align: center;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        /* ========== АДАПТИВНІСТЬ ========== */
+        @media (min-width: 576px) {
+            body { padding: var(--spacing-md); }
+            .nav-list { flex-direction: row; justify-content: center; gap: var(--spacing-md); }
+            .nav-link { padding: var(--spacing-sm) var(--spacing-md); }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+            .search-results { grid-template-columns: repeat(2, 1fr); }
+            .media-gallery { flex-direction: row; justify-content: center; }
+        }
+
+        @media (min-width: 768px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+            .search-results { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1024px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xl); }
+            .search-results { grid-template-columns: repeat(3, 1fr); }
+            body { max-width: 1280px; margin: 0 auto; padding: var(--spacing-lg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========= ШАПКА ========= -->
+    <header class="page-header">
+        <h1>Освітній портал</h1>
+        <p>Сучасні знання для вашого розвитку</p>
+    </header>
+
+    <!-- ========= НАВІГАЦІЯ ========= -->
+    <nav class="main-nav" aria-label="Головне меню">
+        <ul class="nav-list">
+            <li><a href="#app" class="nav-link" aria-current="page">Головна</a></li>
+            <li><a href="#courses" class="nav-link">Курси</a></li>
+            <li><a href="#gallery" class="nav-link">Галерея</a></li>
+            <li><a href="#contact" class="nav-link">Контакти</a></li>
+        </ul>
+    </nav>
+
+    <!-- ========= ГОЛОВНИЙ КОНТЕЙНЕР VUE ========= -->
+    <main id="app">
+        
+        <!-- СЕКЦІЯ ПРО ПОРТАЛ -->
+        <section class="about-section">
+            <h2>Про освітній портал</h2>
+            <p>Наш портал пропонує <strong>безкоштовні онлайн-курси</strong> з програмування, дизайну та маркетингу.</p>
+            <p>Понад <strong>10 000 студентів</strong> вже долучилися до навчання.</p>
+            
+            <h3>Ключові поняття</h3>
+            <dl class="glossary">
+                <dt>LMS</dt>
+                <dd>Система управління навчанням</dd>
+                <dt>Відкриті курси</dt>
+                <dd>Курси з вільним доступом</dd>
+                <dt>Сертифікація</dt>
+                <dd>Підтвердження знань</dd>
+            </dl>
+        </section>
+
+        <!-- ========= ПОШУК КУРСІВ ========= -->
+        <section class="search-section">
+            <h2>Пошук курсів</h2>
+            <p>Введіть назву курсу, технологію або ключове слово:</p>
+            
+            <input 
+                type="text" 
+                v-model="searchQuery" 
+                class="search-input" 
+                placeholder="Наприклад: JavaScript, React, CSS, дизайн..."
+                autocomplete="off"
+            >
+            
+            <div class="category-filter">
+                <label>Категорія:</label>
+                <select v-model="selectedCategory" class="category-select">
+                    <option value="all">Всі категорії</option>
+                    <option value="Web-розробка">Web-розробка</option>
+                    <option value="Дизайн">Дизайн</option>
+                    <option value="Data Science">Data Science</option>
+                </select>
+            </div>
+            
+            <div class="search-counter">
+                Знайдено курсів: {{ filteredCourses.length }}
+            </div>
+            
+            <div class="search-results">
+                <div v-for="course in filteredCourses" :key="course.id" class="course-card" @click="handleViewDetails(course)">
+                    <h3>📚 {{ course.title }}</h3>
+                    <p>{{ course.description }}</p>
+                    <div class="course-details">
+                        <span>📁 {{ course.category }}</span>
+                        <span>⭐ {{ getLevelIcon(course.level) }} {{ course.level }}</span>
+                        <span>⏱️ {{ course.duration }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="filteredCourses.length === 0" class="no-results">
+                    😕 За вашим запитом нічого не знайдено. Спробуйте інші ключові слова.
+                </div>
+            </div>
+        </section>
+
+        <!-- ========= ГАЛЕРЕЯ ========= -->
+        <section class="gallery-section">
+            <h2>Галерея наших заходів</h2>
+            <div class="gallery-grid">
+                <div class="gallery-card" v-for="(item, index) in galleryItems" :key="index">
+                    <img :src="getImagePath(index + 1)" :alt="item.title" class="gallery-img">
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.desc }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========= КОНТАКТИ ========= -->
+        <section class="contact-section">
+            <h2>Контакти та ресурси</h2>
+            <div class="media-gallery">
+                <img src="images/students.jpg" alt="Студенти" class="responsive-img" onerror="this.src='https://picsum.photos/id/20/300/200'">
+                <figure class="image-figure">
+                    <img src="images/online_learning.jpg" alt="Онлайн-навчання" class="responsive-img" onerror="this.src='https://picsum.photos/id/26/300/200'">
+                    <figcaption>Сучасний формат онлайн-занять</figcaption>
+                </figure>
+            </div>
+            <p>Детальніше: <a href="https://www.wikipedia.org" class="external-link" target="_blank">довідковий розділ</a></p>
+        </section>
+        
+        <!-- ПОВІДОМЛЕННЯ -->
+        <div v-if="notification" class="notification" :class="notificationType">
+            {{ notification }}
+            <button @click="clearNotification" class="notification-close">×</button>
+        </div>
+        
+    </main>
+
+    <!-- ПІДВАЛ -->
+    <footer class="page-footer">
+        <p>&copy; 2026 Освітній портал. Усі права захищено.</p>
+    </footer>
+
+    <script>
+        // Дані про курси
+        const coursesData = [
+            { id: 1, title: "JavaScript для початківців", category: "Web-розробка", level: "Початковий", duration: "8 тижнів", description: "Основи JavaScript, змінні, функції, події, DOM маніпуляції." },
+            { id: 2, title: "React - сучасний підхід", category: "Web-розробка", level: "Середній", duration: "10 тижнів", description: "Компоненти, хуки, state management, роутинг." },
+            { id: 3, title: "CSS Grid та Flexbox", category: "Web-розробка", level: "Початковий", duration: "4 тижні", description: "Сучасна верстка адаптивних сайтів." },
+            { id: 4, title: "TypeScript у проєктах", category: "Web-розробка", level: "Просунутий", duration: "6 тижнів", description: "Типізація, інтерфейси, компіляція." },
+            { id: 5, title: "UI/UX дизайн для розробників", category: "Дизайн", level: "Початковий", duration: "6 тижнів", description: "Принципи дизайну, прототипування, Figma." },
+            { id: 6, title: "Анімація у веб-інтерфейсах", category: "Дизайн", level: "Середній", duration: "4 тижні", description: "CSS-анімації, transitions, ключові кадри." },
+            { id: 7, title: "Python для Data Science", category: "Data Science", level: "Початковий", duration: "12 тижнів", description: "NumPy, Pandas, візуалізація даних." },
+            { id: 8, title: "Машинне навчання", category: "Data Science", level: "Просунутий", duration: "14 тижнів", description: "Scikit-learn, нейронні мережі, TensorFlow." },
+            { id: 9, title: "SQL для аналітиків", category: "Data Science", level: "Початковий", duration: "5 тижнів", description: "Запити, JOIN, агрегація, оптимізація." },
+            { id: 10, title: "Node.js та Express", category: "Web-розробка", level: "Середній", duration: "8 тижнів", description: "Бекенд розробка, REST API, MongoDB." },
+            { id: 11, title: "Figma від А до Я", category: "Дизайн", level: "Початковий", duration: "4 тижні", description: "Інтерфейс, компоненти, прототипи, спільна робота." },
+            { id: 12, title: "Основи HTML5", category: "Web-розробка", level: "Початковий", duration: "3 тижні", description: "Семантична розмітка, форми, мультимедіа." }
+        ];
+
+        // Дані для галереї
+        const galleryData = [
+            { title: "Відкриття курсу Web-розробки", desc: "Більше 50 студентів долучилися" },
+            { title: "Майстер-клас з UI/UX", desc: "Практичний воркшоп" },
+            { title: "Хакатон 2025", desc: "Командні змагання" },
+            { title: "Лекція Data Science", desc: "Вступ до ШІ" },
+            { title: "Кар'єрний форум", desc: "Зустріч з роботодавцями" },
+            { title: "Сертифікація", desc: "Вручення дипломів" },
+            { title: "Онлайн-марафон", desc: "Тиждень інтенсивного навчання" },
+            { title: "Круглий стіл", desc: "Обговорення технологій" },
+            { title: "Випускний вечір", desc: "Святкування завершення" }
+        ];
+
+        // Створення кореневого застосунку Vue
+        const app = Vue.createApp({
+            data() {
+                return {
+                    courses: coursesData,
+                    galleryItems: galleryData,
+                    searchQuery: '',
+                    selectedCategory: 'all',
+                    notification: '',
+                    notificationType: 'info'
+                };
+            },
+            
+            computed: {
+                filteredCourses() {
+                    let result = this.courses;
+                    
+                    if (this.searchQuery.trim() !== '') {
+                        const query = this.searchQuery.toLowerCase().trim();
+                        result = result.filter(course => 
+                            course.title.toLowerCase().includes(query) ||
+                            course.category.toLowerCase().includes(query) ||
+                            course.level.toLowerCase().includes(query) ||
+                            course.description.toLowerCase().includes(query)
+                        );
+                    }
+                    
+                    if (this.selectedCategory !== 'all') {
+                        result = result.filter(course => course.category === this.selectedCategory);
+                    }
+                    
+                    return result;
+                }
+            },
+            
+            watch: {
+                searchQuery(newVal, oldVal) {
+                    console.log(`Пошук змінено: "${oldVal}" → "${newVal}"`);
+                },
+                
+                filteredCourses(newVal) {
+                    if (newVal.length === 0 && this.searchQuery !== '') {
+                        this.showNotification(`За запитом "${this.searchQuery}" нічого не знайдено`, 'warning');
+                    }
+                }
+            },
+            
+            methods: {
+                handleViewDetails(course) {
+                    this.showNotification(`Обрано курс: ${course.title}`, 'success');
+                    console.log('Деталі курсу:', course);
+                },
+                
+                showNotification(message, type = 'info') {
+                    this.notification = message;
+                    this.notificationType = type;
+                    
+                    setTimeout(() => {
+                        if (this.notification === message) {
+                            this.clearNotification();
+                        }
+                    }, 3000);
+                },
+                
+                clearNotification() {
+                    this.notification = '';
+                },
+                
+                getLevelIcon(level) {
+                    if (level === 'Початковий') return '🌱';
+                    if (level === 'Середній') return '📚';
+                    return '🏆';
+                },
+                
+                getImagePath(num) {
+                    const extensions = {
+                        4: 'png',
+                        8: 'png',
+                        9: 'png'
+                    };
+                    const ext = extensions[num] || 'jpg';
+                    return `images/gallery${num}.${ext}`;
+                }
+            }
+        });
+
+        app.mount('#app');
+        console.log('Lab5: Vue.js застосунок завантажено!');
+    </script>
+</body>
+</html>
